@@ -1,0 +1,628 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JARVIS AI Assistant</title><style>
+*{
+    box-sizing:border-box;
+}
+body{
+    margin:0;
+    background:#050b18;
+    color:white;
+    font-family:Arial,sans-serif;
+}
+header{
+    padding:20px;
+    text-align:center;
+    background:#0b1730;
+    border-bottom:1px solid #00d9ff;
+}
+header h1{
+    color:#00eaff;
+    text-shadow:0 0 15px #00d9ff;
+}
+.container{
+    max-width:650px;
+    margin:auto;
+    padding:15px;
+}
+.card{
+    background:#101d35;
+    padding:18px;
+    margin:15px 0;
+    border-radius:15px;
+    border:1px solid #17446b;
+    box-shadow:0 0 12px #003b60;
+}
+h2{
+    color:#00eaff;
+}
+.clock{
+    font-size:35px;
+    text-align:center;
+    color:#00ffcc;
+    font-weight:bold;
+}
+input,button,textarea{
+    width:100%;
+    padding:13px;
+    margin:7px 0;
+    border-radius:9px;
+    border:none;
+    font-size:15px;
+}
+input,textarea{
+    background:#071326;
+    color:white;
+    border:1px solid #087baf;
+}
+button{
+    background:linear-gradient(45deg,#007bff,#00eaff);
+    color:#001020;
+    font-weight:bold;
+    cursor:pointer;
+}
+button:active{
+    transform:scale(.97);
+}
+.chatbox{
+    height:230px;
+    overflow-y:auto;
+    background:#071326;
+    padding:12px;
+    border-radius:10px;
+}
+.message{
+    padding:10px;
+    margin:8px 0;
+    border-radius:10px;
+    background:#123451;
+    overflow-wrap:anywhere;
+}
+.user{
+    background:#075b66;
+    text-align:right;
+}
+.task{
+    padding:10px;
+    background:#172b46;
+    margin:7px 0;
+    border-radius:8px;
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+}
+.task button{
+    width:auto;
+    margin:0;
+}
+.progress{
+    height:15px;
+    background:#26364d;
+    border-radius:20px;
+    overflow:hidden;
+}
+.bar{
+    height:100%;
+    width:0%;
+    background:#00ffae;
+}
+.small{
+    color:#a9c8dd;
+    font-size:13px;
+}
+footer{
+    text-align:center;
+    color:#6c9ab8;
+    padding:20px;
+}
+</style></head><body><header>
+<h1>🤖 JARVIS AI</h1>
+<p>SMART DAILY ASSISTANT PRO</p>
+</header><div class="container"><!-- CLOCK --><div class="card">
+<h2>🕒 Live Clock</h2>
+<div class="clock" id="clock">00:00:00</div>
+<p id="date" style="text-align:center"></p>
+</div><!-- AI ASSISTANT --><div class="card">
+<h2>🤖 AI Assistant</h2><div class="chatbox" id="chatbox">
+<div class="message">
+JARVIS: Hello! I am your smart assistant. How can I help you?
+</div>
+</div><input id="question"
+placeholder="Ask something...">
+
+<button onclick="askAI()">SEND MESSAGE</button>
+
+<button onclick="startVoice()">🎙️ VOICE COMMAND</button>
+
+<button onclick="speak('Hello! I am Jarvis. How can I help you?')">
+🔊 TEST VOICE
+</button><p class="small">
+Offline smart commands are available.
+Online AI requires a secure backend and AI API.
+</p>
+</div><!-- ALARM --><div class="card">
+<h2>⏰ Smart Alarm</h2><input type="time" id="alarmTime"><input type="text" id="alarmMessage"
+placeholder="Alarm message"
+value="Time to study!">
+
+<button onclick="setAlarm()">SET ALARM</button>
+<button onclick="stopAlarm()">STOP ALARM</button>
+
+<p id="alarmStatus">No alarm set.</p>
+</div><!-- STUDY PLANNER --><div class="card">
+<h2>📚 Study Planner</h2><input type="text" id="subject"
+placeholder="Enter subject">
+
+<input type="number" id="studyMinutes"
+placeholder="Study minutes">
+
+<button onclick="startStudy()">START STUDY</button>
+
+<h2 id="studyTimer">00:00</h2>
+<button onclick="stopStudy()">STOP STUDY</button>
+</div><!-- WATER REMINDER --><div class="card">
+<h2>💧 Water Reminder</h2><input type="number" id="waterInterval"
+value="60" min="1"
+placeholder="Minutes">
+
+<button onclick="startWater()">START REMINDER</button>
+<button onclick="stopWater()">STOP REMINDER</button>
+
+<p id="waterStatus">Reminder is off.</p>
+</div><!-- TASK MANAGER --><div class="card">
+<h2>✅ Daily Task Manager</h2><input type="text" id="taskInput"
+placeholder="Enter your task">
+
+<button onclick="addTask()">ADD TASK</button>
+
+<div id="taskList"></div><h3>Progress</h3><div class="progress">
+<div class="bar" id="progressBar"></div>
+</div><p id="progressText">0% Completed</p>
+</div></div><footer>
+JARVIS AI PRO | Version 1.0
+</footer><script>
+
+// LIVE CLOCK
+
+function updateClock(){
+
+let now=new Date();
+
+document.getElementById("clock").innerText=
+now.toLocaleTimeString();
+
+document.getElementById("date").innerText=
+now.toDateString();
+
+}
+
+setInterval(updateClock,1000);
+updateClock();
+
+
+// VOICE REPLY
+
+function speak(text){
+
+if(!("speechSynthesis" in window)){
+alert("Voice not supported in this browser");
+return;
+}
+
+speechSynthesis.cancel();
+
+let speech=new SpeechSynthesisUtterance(text);
+
+speech.lang="en-IN";
+speech.rate=0.9;
+
+speechSynthesis.speak(speech);
+
+}
+
+
+// CHAT SYSTEM
+
+function addMessage(text,type){
+
+let box=document.getElementById("chatbox");
+
+let div=document.createElement("div");
+
+div.className="message "+type;
+
+div.textContent=text;
+
+box.appendChild(div);
+
+box.scrollTop=box.scrollHeight;
+
+}
+
+
+// OFFLINE SMART AI COMMANDS
+
+function askAI(){
+
+let input=document.getElementById("question");
+
+let q=input.value.trim().toLowerCase();
+
+if(!q)return;
+
+addMessage("YOU: "+input.value,"user");
+
+let answer="I am JARVIS. Please try another command.";
+
+if(q.includes("hello") || q.includes("hi")){
+answer="Hello! Welcome back. How can I help you?";
+}
+
+else if(q.includes("time")){
+answer="Current time is "+new Date().toLocaleTimeString();
+}
+
+else if(q.includes("date")){
+answer="Today is "+new Date().toDateString();
+}
+
+else if(q.includes("study")){
+answer="Great! Open your study planner and start studying.";
+}
+
+else if(q.includes("water")){
+answer="Remember to drink water. Stay hydrated!";
+}
+
+else if(q.includes("motivate")){
+answer="Believe in yourself. Small steps every day create big success!";
+}
+
+else if(q.includes("task")){
+answer="Open Daily Task Manager to add your tasks.";
+}
+
+else if(q.includes("help")){
+answer="I can tell time, date, give study suggestions, and help manage your tasks.";
+}
+
+addMessage("JARVIS: "+answer,"");
+
+speak(answer);
+
+input.value="";
+
+}
+
+
+// VOICE COMMAND
+
+function startVoice(){
+
+let Recognition=
+window.SpeechRecognition ||
+window.webkitSpeechRecognition;
+
+if(!Recognition){
+alert("Voice recognition is not supported. Try a supported browser.");
+return;
+}
+
+let recognition=new Recognition();
+
+recognition.lang="en-IN";
+
+recognition.onresult=function(event){
+
+let result=event.results[0][0].transcript;
+
+document.getElementById("question").value=result;
+
+askAI();
+
+};
+
+recognition.onerror=function(){
+alert("Voice recognition failed. Please try again.");
+};
+
+recognition.start();
+
+}
+
+
+// ALARM SYSTEM
+
+let alarmTimer=null;
+let alarmInterval=null;
+
+function setAlarm(){
+
+let time=document.getElementById("alarmTime").value;
+
+if(!time){
+alert("Please select alarm time");
+return;
+}
+
+if(alarmTimer){
+clearTimeout(alarmTimer);
+}
+
+let parts=time.split(":");
+
+let now=new Date();
+
+let target=new Date();
+
+target.setHours(+parts[0],+parts[1],0,0);
+
+if(target<=now){
+target.setDate(target.getDate()+1);
+}
+
+let delay=target-now;
+
+document.getElementById("alarmStatus").innerText=
+"Alarm set for "+time;
+
+alarmTimer=setTimeout(function(){
+
+let message=
+document.getElementById("alarmMessage").value;
+
+speak(message);
+
+alert("⏰ JARVIS ALARM: "+message);
+
+alarmInterval=setInterval(function(){
+speak(message);
+},10000);
+
+},delay);
+
+}
+
+function stopAlarm(){
+
+clearTimeout(alarmTimer);
+clearInterval(alarmInterval);
+
+alarmTimer=null;
+alarmInterval=null;
+
+if("speechSynthesis" in window){
+speechSynthesis.cancel();
+}
+
+document.getElementById("alarmStatus").innerText=
+"Alarm stopped.";
+
+}
+
+
+// STUDY TIMER
+
+let studyTimer=null;
+let remaining=0;
+
+function startStudy(){
+
+let minutes=Number(
+document.getElementById("studyMinutes").value
+);
+
+if(!Number.isInteger(minutes) || minutes<1){
+alert("Enter valid study minutes");
+return;
+}
+
+clearInterval(studyTimer);
+
+remaining=minutes*60;
+
+updateStudy();
+
+studyTimer=setInterval(function(){
+
+remaining--;
+
+updateStudy();
+
+if(remaining<=0){
+
+clearInterval(studyTimer);
+
+speak("Study session completed. Great work!");
+
+alert("Study session completed!");
+
+}
+
+},1000);
+
+}
+
+function updateStudy(){
+
+let m=Math.floor(remaining/60);
+let s=remaining%60;
+
+document.getElementById("studyTimer").innerText=
+String(m).padStart(2,"0")+":"+
+String(s).padStart(2,"0");
+
+}
+
+function stopStudy(){
+
+clearInterval(studyTimer);
+
+document.getElementById("studyTimer").innerText=
+"Stopped";
+
+}
+
+
+// WATER REMINDER
+
+let waterTimer=null;
+
+function startWater(){
+
+let minutes=Number(
+document.getElementById("waterInterval").value
+);
+
+if(!Number.isInteger(minutes)||minutes<1){
+alert("Enter valid minutes");
+return;
+}
+
+clearInterval(waterTimer);
+
+document.getElementById("waterStatus").innerText=
+"Water reminder active: Every "+minutes+" minutes.";
+
+waterTimer=setInterval(function(){
+
+speak("Water reminder! Time to drink water.");
+
+alert("💧 Time to drink water!");
+
+},minutes*60*1000);
+
+}
+
+function stopWater(){
+
+clearInterval(waterTimer);
+
+document.getElementById("waterStatus").innerText=
+"Reminder stopped.";
+
+}
+
+
+// TASK MANAGER WITH STORAGE
+
+let tasks=JSON.parse(
+localStorage.getItem("jarvisTasks")||"[]"
+);
+
+function saveTasks(){
+
+localStorage.setItem(
+"jarvisTasks",
+JSON.stringify(tasks)
+);
+
+renderTasks();
+
+}
+
+function addTask(){
+
+let input=document.getElementById("taskInput");
+
+let value=input.value.trim();
+
+if(!value)return;
+
+tasks.push({
+text:value,
+done:false
+});
+
+input.value="";
+
+saveTasks();
+
+}
+
+function toggleTask(index){
+
+tasks[index].done=!tasks[index].done;
+
+saveTasks();
+
+}
+
+function deleteTask(index){
+
+tasks.splice(index,1);
+
+saveTasks();
+
+}
+
+function renderTasks(){
+
+let list=document.getElementById("taskList");
+
+list.innerHTML="";
+
+tasks.forEach(function(task,index){
+
+let row=document.createElement("div");
+
+row.className="task";
+
+let label=document.createElement("span");
+
+label.textContent=
+(task.done?"✔️ ":"☐ ")+task.text;
+
+if(task.done){
+label.style.textDecoration="line-through";
+}
+
+let actions=document.createElement("div");
+
+let check=document.createElement("button");
+
+check.textContent="✔";
+
+check.onclick=function(){
+toggleTask(index);
+};
+
+let remove=document.createElement("button");
+
+remove.textContent="✖";
+
+remove.onclick=function(){
+deleteTask(index);
+};
+
+actions.appendChild(check);
+actions.appendChild(remove);
+
+row.appendChild(label);
+row.appendChild(actions);
+
+list.appendChild(row);
+
+});
+
+let total=tasks.length;
+
+let completed=tasks.filter(t=>t.done).length;
+
+let percent=total?
+Math.round(completed/total*100):0;
+
+document.getElementById("progressBar").style.width=
+percent+"%";
+
+document.getElementById("progressText").innerText=
+percent+"% Completed ("+completed+"/"+total+")";
+
+}
+
+renderTasks();
+
+</script></body>
+</html>
